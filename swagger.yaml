@@ -1,0 +1,499 @@
+openapi: 3.0.0
+info:
+  title: Service Instance Manager Api
+  description: Service Instance Manager Api
+  version: 1.0.0
+  license:
+    name: Apache-2.0
+    url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+externalDocs:
+  description: Find out more about Oracle Inc
+  url: http://www.oracle.com
+servers:
+  - url: /ehrclinical/internal-api/v1
+tags:
+  - name: Service Instance Lifecycle
+    description: Service Instance Lifecycle Operations Api's(Control plane facing).
+  - name: Service Instance Metadata
+    description: Service Instance Metadata Api's.
+
+paths:
+  /serviceInstances:
+    post:
+      tags:
+        - Service Instance Lifecycle
+      summary: Creates a Service Instance
+      description: Creates a new ehrclinical Service Instance
+      operationId: createServiceInstance
+      parameters:
+        - name: opc-request-id
+          in: header
+          schema:
+            type: string
+          description: The client request ID for tracing.
+        - name: opc-retry-token
+          in: header
+          required: false
+          schema:
+            type: string
+          description: |
+            A token that uniquely identifies a request so it can be retried in case of a timeout or
+            server error without risk of executing that same action again. Retry tokens expire after 24
+            hours, but can be invalidated before then due to conflicting operations. For example, if a resource
+            has been deleted and purged from the system, then a retry of the original creation request
+            might be rejected.
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/CreateServiceInstance"
+      responses:
+        201:
+          description: Created the request. The EhrcInstance will be created.
+          headers:
+            location:
+              schema:
+                type: string
+              description: Url to monitor the request(Workflow) status
+        400:
+          description: Bad Request
+        409:
+          description: Duplicate Record
+        500:
+          description: Internal Server Error
+    get:
+      tags:
+        - Service Instance Metadata
+      summary: Lists all Service Instances metadata
+      description: Lists all ehr service Instances metadata
+      operationId: getServiceInstances
+      parameters:
+        - name: status
+          in: query
+          description: instance status ex- creating, configured
+          required: false
+          schema:
+            type: string
+        - name: compartmentId
+          in: query
+          description: compartment ocid  of service instance
+          required: false
+          schema:
+            type: string
+        - name: shape
+          in: query
+          description: shape of service instance - development/production
+          required: false
+          schema:
+            type: string
+        - name: url
+          in: query
+          description: service instance internal url
+          required: false
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: The number of items to return. If parameter is omitted default value 100 is set.
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          required: false
+          description: 0 based index. The number of items to skip before starting to collect the result set.
+          schema:
+            type: integer
+            default: 0
+        - name: totalResults
+          in: query
+          required: false
+          description: If true, return total count of records for given query with filters
+          schema:
+            type: boolean
+            default: false
+        - name: parentSvcInstanceId
+          in: query
+          description: ehr service instance ocid
+          required: false
+          schema:
+            type: string
+        - name: parentSvcInstanceExtUrl
+          in: query
+          description: ehr service instance public url
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceInstances'
+        400:
+          description: Bad Request, if some of the query parameters are invalid
+        500:
+          description: Internal Server Error
+  /serviceInstances/{id}:
+    get:
+      tags:
+        - Service Instance Metadata
+      summary: Get a specific Service Instance metadata
+      description: Get a specific Service Instance metadata
+      operationId: getServiceInstance
+      parameters:
+        - name: id
+          in: path
+          description: Service Instance Id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceInstance'
+        404:
+          description: Service instance not found
+        500:
+          description: Internal Server Error
+    put:
+      tags:
+        - Service Instance Metadata
+      summary: Update Service Instance metadata
+      description: Update service instance metadata
+      operationId: updateServiceInstance
+      parameters:
+        - name: id
+          in: path
+          description: Service Instance Id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/CreateServiceInstance"
+      responses:
+        200:
+          description: successful operation
+        400:
+          description: Bad Request
+        404:
+          description: Service instance not found
+        500:
+          description: Internal Server Error
+    delete:
+      tags:
+        - Service Instance Lifecycle
+      summary: Delete service instance metadata
+      description: Delete service Instance metadata
+      operationId: deleteServiceInstance
+      parameters:
+        - name: id
+          in: path
+          description: Service Instance Id
+          required: true
+          schema:
+            type: string
+        - name: opc-request-id
+          in: header
+          schema:
+            type: string
+          description: The client request ID for tracing.
+      responses:
+        201:
+          description: Created the request. The EhrcInstance will be created.
+          headers:
+            location:
+              schema:
+                type: string
+              description: Url to monitor the request(Workflow) status
+        404:
+          description: Service instance not found
+        500:
+          description: Internal Server Error
+  /serviceInstances/{id}/associatedServices:
+    post:
+      tags:
+        - Service Instance Lifecycle
+      summary: Associate ehr sub service instances
+      description: Associate ehr sub service instances
+      operationId: createAssociateServices
+      parameters:
+        - name: id
+          in: path
+          description: Service Instance Id
+          required: true
+          schema:
+            type: string
+        - name: opc-request-id
+          in: header
+          schema:
+            type: string
+          description: The client request ID for tracing.
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/AssociatedServiceInstances"
+      responses:
+        200:
+          description: successful operation
+        400:
+          description: Bad Request
+        404:
+          description: Service instance not found
+        500:
+          description: Internal Server Error
+    put:
+      tags:
+        - Service Instance Lifecycle
+      summary: Update associated ehr sub services
+      description: Update associated ehr sub services
+      operationId: updateAssociateServices
+      parameters:
+        - name: id
+          in: path
+          description: Service Instance Id
+          required: true
+          schema:
+            type: string
+        - name: opc-request-id
+          in: header
+          schema:
+            type: string
+          description: The client request ID for tracing.
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              $ref: "#/components/schemas/AssociatedServiceInstances"
+      responses:
+        200:
+          description: successful operation
+        400:
+          description: Bad Request
+        404:
+          description: Service instance not found
+        500:
+          description: Internal Server Error
+    get:
+      tags:
+        - Service Instance Metadata
+      summary: List ehr associated sub Service Instances
+      description: Lists all associated ehr sub service Instances details
+      operationId: getAssociatedServices
+      parameters:
+        - name: id
+          in: path
+          description: Service Instance Id
+          required: true
+          schema:
+            type: string
+        - name: serviceType
+          in: query
+          description: for getting specific sub service instance details.
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssociatedServiceInstances'
+        400:
+          description: Bad Request, check if some of the query parameters are invalid
+        404:
+          description: Service instance not found
+        500:
+          description: Internal Server Error
+  /workflow/{workflowId}:
+    get:
+      tags:
+        - Service Instance Lifecycle
+      summary: GET Workflow Status
+      description: Gets the status of the work flow with the given ID.
+      operationId: getWorkflowStatus
+      parameters:
+        - name: workflowId
+          in: path
+          description: Workflow Id
+          required: true
+          schema:
+            type: string
+        - name: opc-request-id
+          in: header
+          schema:
+            type: string
+          description: The client request ID for tracing.
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkflowStatus'
+        400:
+          description: Bad Request
+        404:
+          description: Workflow Id not found
+        500:
+          description: Internal Server Error
+
+components:
+  schemas:
+    AssociatedServiceInstances:
+      description: List of Associated Service Instances
+      type: object
+      title: Associated Service Instances
+      properties:
+        items:
+          description: List of Associated service Instances
+          type: array
+          items:
+            $ref: "#/components/schemas/AssociatedServiceInstance"
+    AssociatedServiceInstance:
+      title: Associated Service Instance
+      description: Associated Service Instance details
+      type: object
+      properties:
+        id:
+          type: string
+        serviceType:
+          type: string
+        url:
+          type: string
+    CreateServiceInstance:
+      title: Create Service Instance
+      description: Object containing all the info about create ehr clinical service instance metadata
+      type: object
+      properties:
+        id:
+          type: string
+        parentSvcInstanceId:
+          type: string
+        parentSvcInstanceExtUrl:
+          type: string
+        displayName:
+          type: string
+        url:
+          type: string
+        tenantId:
+          type: string
+        compartmentId:
+          type: string
+        clusterId:
+          type: string
+        type:
+          type: string
+        shape:
+          type: string
+        status:
+          type: string
+        ehrConfig:
+          $ref: '#/components/schemas/EhrConfig'
+    EhrConfig:
+      title: Ehr Config
+      description: Object contain all info about ehr config
+      type: object
+      properties:
+        ehrConfigType:
+          type: string
+        tenant:
+          type: string
+    ServiceInstances:
+      title: service instances list
+      description: list of service instances
+      allOf:
+        - $ref: '#/components/schemas/ListPagination'
+        - type: object
+          properties:
+            hasMore:
+              type: boolean
+              default: false
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/ServiceInstance'
+    ServiceInstance:
+      title: Service Instance
+      description: Object containing all the info about ehr clinical service instance metadata response
+      type: object
+      properties:
+        id:
+          type: string
+        parentSvcInstanceId:
+          type: string
+        parentSvcInstanceExtUrl:
+          type: string
+        displayName:
+          type: string
+        url:
+          type: string
+        tenantId:
+          type: string
+        compartmentId:
+          type: string
+        clusterId:
+          type: string
+        type:
+          type: string
+        shape:
+          type: string
+        status:
+          type: string
+        ehrConfig:
+          $ref: '#/components/schemas/EhrConfig'
+    ListPagination:
+      description: Structure for pagination
+      type: object
+      properties:
+        totalResults:
+          type: integer
+          description: The total number of elements in the list for the applied filters
+            - not including the "limit" parameter
+        offset:
+          type: integer
+          description: The index number of the first element for the list. This will
+            correspond to the "offset" query parameter value
+        limit:
+          type: integer
+          description: The maximum number of elements to be returned. This will correspond
+            to the "limit" query parameter
+        count:
+          type: integer
+          description: The count of elements that are returned in the current this
+            will be equal to or less than the "limit" parameter
+    WorkflowStatus:
+      title: Workflow Status
+      description: object containing all the info about dp workflow status
+      type: object
+      properties:
+        status:
+          type: string
+          description: Status of current work flow request.
+        tag:
+          type: string
+          description: The tag associated with the workflow.
+        code:
+          type: string
+          description: The status code of the workflow.
+        message:
+          type: string
+          description: The message returned as part of the status check..
+      required:
+        - status
+        - code
+        - message
